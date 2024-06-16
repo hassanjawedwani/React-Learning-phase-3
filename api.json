@@ -1,0 +1,29 @@
+{
+  "posts": [
+    {
+      "id": "8cf2",
+      "user": "anil",
+      "views": 500
+    },
+    {
+      "id": "0836",
+      "user": "grande",
+      "views": 700
+    }
+  ],
+  "comments": [
+    {
+      "id": "1",
+      "text": "a comment about post 1",
+      "postId": null
+    },
+    {
+      "id": "2",
+      "text": "another comment about post 1",
+      "postId": null
+    }
+  ],
+  "profile": {
+    "name": "typicode"
+  }
+}

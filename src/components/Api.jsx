@@ -48,10 +48,22 @@ const initialState = {
   views: "",
 };
 
+
+
 const Api = () => {
   const [data, setData] = useState([]);
   const [formData, setFormData] = useState(initialState);
   const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState('');
+  
+  const fetchFromApi = async(str) => {
+    const response = await fetch(str);
+    if (!response.ok) {
+      throw new Error("Error occured in fetching data");
+    }
+    return await response.json();
+  }
 
   const createPost = async () => {
     try {
@@ -72,9 +84,46 @@ const Api = () => {
     }
   };
 
+  const editPost = async (id) => {
+    setIsEditing(true);
+    setEditingId(id);
+    const result = await fetchFromApi(`http://localhost:3000/posts/${id}`);
+    setFormData(prevState => ({
+      ...prevState,
+      ...result
+    }));
+  
+  };
+
+  const updatePost = async() => {
+    try {
+      const response = await fetch(`http://localhost:3000/posts/${editingId}`, {
+        method: "PUT",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+    if (!response.ok) {
+      throw new Error("failed to Edit post");
+    }
+    await updateTable();
+    } catch (error) {
+      console.error("Error occured: ", error);
+    }
+
+  }
+
   const submitHandler = async (event) => {
     event.preventDefault();
+    if (!isEditing) {
     await createPost();
+    }
+    else {
+    await updatePost();
+    setIsEditing(false);
+    }
     setFormData(initialState);
   };
 
@@ -89,18 +138,12 @@ const Api = () => {
   const updateTable = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3000/posts");
-      if (!response.ok) {
-        throw new Error("Failed to update table");
-      }
-      const result = await response.json();
+      const result = await fetchFromApi("http://localhost:3000/posts");
       setData(result);
     } catch (error) {
       console.error("Error occured: ", error);
     } finally {
-      setTimeout(() => {
         setLoading(false);
-      }, 2000);
     }
   };
 
@@ -117,6 +160,8 @@ const Api = () => {
       console.error("Error occured: ", error);
     }
   };
+
+  
 
   useEffect(() => {
     updateTable();
@@ -151,6 +196,9 @@ const Api = () => {
                   <td>{obj.user}</td>
                   <td>{obj.views}</td>
                   <td>
+                    <button type="button" onClick={() => editPost(obj.id)}>
+                      Edit
+                    </button>
                     <button type="button" onClick={() => deleteHandler(obj.id)}>
                       Delete
                     </button>
@@ -166,7 +214,7 @@ const Api = () => {
                 type="text"
                 placeholder="Enter user:"
                 name="user"
-                value={formData.user}
+                value={formData.user} 
                 onChange={inputHandler}
                 required
               />
@@ -179,7 +227,11 @@ const Api = () => {
                 onChange={inputHandler}
                 required
               />
-              <button type="submit">Add Data in Apis</button>
+              <button type="submit">
+              {
+                isEditing ? "Update Data in Apis" : "Add Data in Apis"
+              }
+              </button>
             </form>
           </div>
         </>
